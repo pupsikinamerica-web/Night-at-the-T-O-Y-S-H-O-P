@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Night at the Toy Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Lilita+One&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B1F4B; --paper:#E9ECFF; --panel:#FFFFFF; --muted:#555B8E; --line:#1B1F4B; --soft:#F3F4FF;
+  --torch:#FFD966; --red:#F0453A; --mint:#3CC9A0; --sky:#4AA8FF;
+  --ok:#14825E; --bad:#C92D22;
+  --p-in:#BFE0FF; --p-on:#BDF0DF; --p-under:#FFD0CC;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--ink:#EEF0FF;--paper:#11143A;--panel:#1D2257;--muted:#AEB3E3;--line:#8E95DA;--soft:#262C6A;--ok:#5EE0B3;--bad:#FF8A80;color-scheme:dark}
+}
+:root[data-theme="dark"]{--ink:#EEF0FF;--paper:#11143A;--panel:#1D2257;--muted:#AEB3E3;--line:#8E95DA;--soft:#262C6A;--ok:#5EE0B3;--bad:#FF8A80;color-scheme:dark}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 110px)}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 19px/1.5 'Andika','Trebuchet MS','Segoe UI',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.display{font-family:'Lilita One','Arial Rounded MT Bold','Trebuchet MS',sans-serif;font-weight:400;letter-spacing:.01em}
+img,svg{max-width:100%}
+.wrap{max-width:1000px;margin:0 auto;padding:22px 18px 70px}
+
+/* buttons: toy blocks that press down */
+.btn{font:700 19px/1.2 'Andika','Trebuchet MS',sans-serif;border:3px solid #1B1F4B;background:var(--torch);color:#1B1F4B;border-radius:16px;padding:12px 22px;box-shadow:0 5px 0 #1B1F4B;cursor:pointer;transition:transform .08s,box-shadow .08s;touch-action:manipulation}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #1B1F4B}
+.btn.ghost{background:var(--panel);color:var(--ink);border-color:var(--line);box-shadow:0 5px 0 var(--line)}
+.btn.small{font-size:16px;padding:8px 14px;border-radius:12px}
+.btn:disabled{opacity:.45;cursor:default;transform:none}
+button:focus-visible,[tabindex]:focus-visible,input:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
+
+/* ---------- cover ---------- */
+#cover{text-align:center;padding-top:10px}
+.title{margin:8px 0 6px;line-height:1}
+.t-small{display:block;font-size:clamp(26px,4.4vw,40px);margin-bottom:12px}
+.blocks{display:inline-flex;flex-wrap:wrap;justify-content:center;gap:6px 4px}
+.blk{display:inline-grid;place-items:center;width:clamp(40px,9vw,80px);height:clamp(40px,9vw,80px);border:3px solid #1B1F4B;border-radius:12px;font-size:clamp(26px,6vw,54px);color:#fff;box-shadow:inset 0 -6px 0 rgba(0,0,0,.2),0 4px 0 #1B1F4B;text-shadow:0 2px 0 rgba(27,31,75,.45)}
+.b-r{background:var(--red);transform:rotate(-4deg)}.b-m{background:var(--mint);transform:rotate(3deg)}
+.b-s{background:var(--sky);transform:rotate(-2deg)}.b-y{background:var(--torch);color:#1B1F4B;text-shadow:none;transform:rotate(5deg)}
+.blk-gap{width:clamp(10px,2.5vw,24px)}
+.lede{font-size:clamp(19px,2.4vw,23px);max-width:46ch;margin:18px auto 22px}
+.cover-start{margin-top:22px}
+.btn.big{font-size:23px;padding:16px 30px;border-radius:20px}
+
+/* ---------- torch scenes ---------- */
+.scene{position:relative;border-radius:24px;overflow:hidden;border:3px solid #1B1F4B;background:#0E1030;touch-action:none;user-select:none;-webkit-user-select:none;--x:50%;--y:45%;--r:120px;cursor:crosshair}
+.scene>svg{display:block;width:100%;height:auto}
+.dark{position:absolute;inset:0;background:rgba(9,11,36,.955);pointer-events:none;
+  -webkit-mask-image:radial-gradient(circle var(--r) at var(--x) var(--y),transparent 0,transparent 52%,#000 100%);
+  mask-image:radial-gradient(circle var(--r) at var(--x) var(--y),transparent 0,transparent 52%,#000 100%);transition:opacity .8s}
+.glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle var(--r) at var(--x) var(--y),rgba(255,217,102,.30),rgba(255,217,102,0) 78%);mix-blend-mode:screen;transition:opacity .8s}
+#huntScene .dark{background:rgba(6,8,28,.99)}
+.scene.lit .dark,.scene.lit .glow{opacity:0}
+.scene.lit{cursor:default}
+
+/* ---------- sky progress bar ---------- */
+.skybar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;color:#F3F4FF;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;padding:8px 18px;border-bottom:3px solid #1B1F4B;background:#1B1F4B;transition:color .6s}
+.skybar.dawn{color:#1B1F4B}
+.clock b{font-family:'Lilita One',sans-serif;font-weight:400;font-size:32px;line-height:1;display:block}
+.clock span{font-size:16px;font-weight:700;white-space:nowrap}
+.arc{width:100%;height:66px;display:block;overflow:visible}
+.arc .stop{cursor:pointer}
+.arc .stop path{fill:none;stroke:currentColor;stroke-width:2;opacity:.75}
+.arc .stop.past path{fill:var(--torch);stroke:#1B1F4B;opacity:1}
+.arc .stop.now path{fill:#fff;stroke:#1B1F4B;opacity:1}
+.arc .stop:focus-visible{outline:none}
+.arc .stop:focus-visible path{stroke:var(--sky);stroke-width:3}
+#moon,#sun{transition:transform .9s cubic-bezier(.5,0,.3,1)}
+.bar-right{display:flex;align-items:center;gap:12px}
+.starbox{font-family:'Lilita One',sans-serif;font-size:26px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.starbox svg{width:28px;height:28px}
+.starbox.pulse{animation:pulse .5s}
+@keyframes pulse{50%{transform:scale(1.25)}}
+.mute{font:700 15px/1 'Andika',sans-serif;background:transparent;color:inherit;border:2px solid currentColor;border-radius:999px;padding:7px 12px;cursor:pointer}
+@media (max-width:640px){
+  .skybar{grid-template-columns:auto auto;gap:4px 10px;padding:8px 12px}
+  .bar-right{justify-content:flex-end}
+  .arc{grid-column:1/-1;grid-row:2;height:48px}
+  .clock b{font-size:26px}
+}
+
+/* ---------- missions ---------- */
+.m-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:10px 0 4px}
+.m-num{font-family:'Lilita One',sans-serif;font-size:22px;color:var(--muted)}
+.m-title{font-size:clamp(36px,6vw,58px);line-height:1.02;margin:0}
+.m-task{font-size:21px;margin:8px 0 20px;max-width:58ch}
+.m-nav{display:flex;justify-content:space-between;gap:12px;margin-top:34px}
+.panel{background:var(--panel);border:2px solid var(--line);border-radius:26px;padding:22px}
+.msg{min-height:1.6em;font-weight:700;font-size:20px;margin:12px 0 0}
+.msg.ok{color:var(--ok)}.msg.bad{color:var(--bad)}
+.count{color:var(--muted);font-weight:700;margin:0}
+.sub{font-size:30px;margin:34px 0 6px}
+mark{color:#1B1F4B;border-radius:8px;padding:0 .2em;font-weight:700}
+mark.p-in{background:var(--p-in)}mark.p-on{background:var(--p-on)}mark.p-under{background:var(--p-under)}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+
+/* 1 talk cards */
+.talk{display:grid;grid-template-columns:150px minmax(0,1fr);gap:26px;align-items:center;min-height:250px;border-radius:32px;padding:30px}
+.talk .ic{width:150px;height:150px}
+.talk-q{font-size:clamp(27px,4vw,40px);font-weight:700;line-height:1.2;margin:0}
+.talk-help{margin:16px 0 0;font-size:22px;color:var(--muted);border-top:2px dashed var(--line);padding-top:12px;visibility:hidden}
+.talk-help.show{visibility:visible}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:18px}
+.row .count{margin-left:auto}
+@media (max-width:560px){.talk{grid-template-columns:1fr;text-align:center}.talk .ic{margin:0 auto;width:110px;height:110px}}
+
+/* 2 flashcards */
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
+.fc{border:0;padding:0;background:none;cursor:pointer;perspective:900px;aspect-ratio:1/1.08;font:inherit;color:inherit}
+.fc-in{position:relative;display:block;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.fc.on .fc-in{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:2px solid var(--line);border-radius:22px;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--panel)}
+.fc-front .ic{width:62%;height:62%}
+.fc-back{transform:rotateY(180deg);background:var(--torch);border:3px solid #1B1F4B;color:#1B1F4B}
+.fc-back b{font-family:'Lilita One',sans-serif;font-weight:400;font-size:clamp(28px,3.4vw,36px);line-height:1.05;text-align:center;padding:0 8px}
+.fc-back small{font-size:17px}
+.fc-back .ic{width:36%;height:36%}
+
+/* 3 match */
+.match{position:relative;display:grid;grid-template-columns:minmax(84px,200px) minmax(80px,1fr) minmax(124px,240px);padding:6px 0}
+.mcol{display:flex;flex-direction:column;gap:12px}
+#mLeft{grid-column:1}#mRight{grid-column:3}
+.m-item{display:flex;align-items:center;justify-content:center;gap:10px;border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:16px;padding:4px 12px;min-height:62px;cursor:pointer;font:700 21px/1.1 'Andika',sans-serif;transition:box-shadow .15s}
+.m-item .ic{width:52px;height:52px}
+.m-item.sel{box-shadow:0 0 0 5px var(--torch)}
+.m-item.done{cursor:default;border-width:3px}
+#mThreads{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:2}
+
+/* 4 box */
+.box-row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:26px;align-items:center}
+.case-wrap svg{width:100%;height:auto;display:block}
+.case .mover{transition:transform .6s cubic-bezier(.34,1.5,.64,1)}
+.say{font-size:clamp(26px,3.6vw,36px);font-weight:700;line-height:1.25;margin:0 0 18px}
+.preps{display:flex;gap:12px;flex-wrap:wrap}
+.prep{font:400 26px/1 'Lilita One',sans-serif;min-width:110px;padding:16px 18px;border:3px solid #1B1F4B;border-radius:18px;box-shadow:0 5px 0 #1B1F4B;color:#1B1F4B;cursor:pointer}
+.prep:active{transform:translateY(4px);box-shadow:0 1px 0 #1B1F4B}
+.prep[data-pos="in"]{background:var(--p-in)}.prep[data-pos="on"]{background:var(--p-on)}.prep[data-pos="under"]{background:var(--p-under)}
+.prep.cur{outline:4px solid var(--ink);outline-offset:3px}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{font:700 21px/1.25 'Andika',sans-serif;text-align:left;padding:12px 16px;border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:16px;cursor:pointer}
+.opt:hover:not(:disabled){background:var(--soft)}
+.opt.right{border:3px solid var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--panel))}
+.opt.wrong{border:3px solid var(--bad);opacity:.75}
+.opt:disabled{cursor:default}
+.q{font-size:clamp(25px,3.4vw,32px);font-weight:700;margin:0 0 14px}
+@media (max-width:700px){.box-row{grid-template-columns:1fr}}
+
+/* 5 & 6 room */
+.room .toy{cursor:pointer}
+.bob{transform-box:fill-box;transform-origin:50% 100%}
+.toy.got .bob{animation:hop .7s}
+.toy.pop .bob{animation:pop .5s}
+@keyframes hop{0%,100%{transform:translateY(0)}30%{transform:translateY(-16px) rotate(-6deg)}60%{transform:translateY(0) rotate(5deg)}}
+@keyframes pop{0%{transform:scale(.2)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+.zone{fill:transparent;stroke:none;pointer-events:none}
+.room.armed .zone{fill:rgba(255,217,102,.10);stroke:#FFD966;stroke-width:3;stroke-dasharray:12 9;pointer-events:all;cursor:pointer}
+.room.armed .zone:hover{fill:rgba(255,217,102,.32)}
+.hunt-bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:start;margin-top:18px}
+.found{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.found .ic{width:46px;height:46px;opacity:.22;filter:grayscale(1);transition:opacity .3s}
+.found .ic.yes{opacity:1;filter:none}
+.note{position:relative;background:#FFF6CF;color:#1B1F4B;border:3px solid #1B1F4B;border-radius:6px 22px 22px 22px;padding:16px 20px;font-size:clamp(24px,3.2vw,30px);font-weight:700;line-height:1.25;margin:0 0 6px}
+.tray{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.tray button{width:84px;height:84px;border:2px solid var(--line);background:var(--panel);border-radius:18px;cursor:pointer;padding:6px}
+.tray button .ic{width:100%;height:100%}
+.tray button.sel{box-shadow:0 0 0 5px var(--torch);border-color:#1B1F4B}
+@media (max-width:640px){.hunt-bar{grid-template-columns:1fr}.tray button{width:66px;height:66px}}
+
+/* 7 final */
+.fq{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:28px;align-items:center}
+.fq-pic{display:grid;place-items:center;min-height:200px;background:var(--soft);border-radius:22px;padding:12px}
+.fq-pic .ic{width:170px;height:170px}
+.fq-pic .ru{font-family:'Lilita One',sans-serif;font-size:64px}
+@media (max-width:640px){.fq{grid-template-columns:1fr}}
+.cert{position:relative;max-width:720px;margin:10px auto 0;text-align:center;color:#1B1F4B;background:linear-gradient(180deg,#FFE6C7,#FFF6DC);border:3px solid #1B1F4B;border-radius:30px;padding:36px 28px 30px;overflow:hidden}
+.cert::before{content:"";position:absolute;inset:10px;border:2px dashed rgba(27,31,75,.45);border-radius:22px;pointer-events:none}
+.cert-badge{width:120px;height:120px;margin:0 auto 6px}
+.cert-kind{font-family:'Lilita One',sans-serif;font-size:26px;margin:0}
+.cert-name{font-size:clamp(46px,8vw,72px);margin:4px 0 6px;line-height:1}
+.cert p{margin:6px 0;font-size:21px}
+.cert-foot{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-top:22px;text-align:left;font-size:18px}
+.cert-sign{text-align:right}
+.cert-sign b{font-family:'Lilita One',sans-serif;font-weight:400;font-size:24px;display:block}
+.name-field{display:flex;align-items:center;gap:10px;justify-content:center;margin:22px 0 0;font-weight:700}
+.name-field input{font:700 20px 'Andika',sans-serif;padding:8px 12px;border:2px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);width:200px}
+
+footer{text-align:center;color:var(--muted);font-size:16px;padding:10px 18px 30px}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- shared drawings: toys are sticker-style with ink outlines -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="wp" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M11 6 l2 4 4 .5 -3 3 .8 4 -3.8-2 -3.8 2 .8-4 -3-3 4-.5z" fill="#5961BE"/>
+      <circle cx="33" cy="31" r="2" fill="#5961BE"/>
+    </pattern>
+    <mask id="cres"><circle r="14" fill="#fff"/><circle cx="7" cy="-5" r="12" fill="#000"/></mask>
+  </defs>
+  <symbol id="t-ball" viewBox="0 0 100 100">
+    <circle cx="50" cy="54" r="38" fill="#F0453A"/>
+    <path d="M13 46 Q50 66 87 46 Q89 55 87 62 Q50 82 13 62 Q11 55 13 46Z" fill="#FFD966"/>
+    <circle cx="36" cy="36" r="7" fill="#fff" opacity=".6"/>
+    <circle cx="50" cy="54" r="38" fill="none" stroke="#1B1F4B" stroke-width="4"/>
+  </symbol>
+  <symbol id="t-teddy" viewBox="0 0 100 100">
+    <g stroke="#1B1F4B" stroke-width="4" stroke-linejoin="round">
+      <ellipse cx="50" cy="78" rx="26" ry="19" fill="#C98B4F"/>
+      <circle cx="25" cy="70" r="9" fill="#C98B4F"/><circle cx="75" cy="70" r="9" fill="#C98B4F"/>
+      <circle cx="28" cy="22" r="11" fill="#C98B4F"/><circle cx="72" cy="22" r="11" fill="#C98B4F"/>
+      <circle cx="50" cy="42" r="25" fill="#C98B4F"/>
+      <ellipse cx="50" cy="51" rx="12" ry="9" fill="#F2C894"/>
+      <ellipse cx="50" cy="82" rx="13" ry="10" fill="#F2C894"/>
+    </g>
+    <circle cx="28" cy="22" r="5" fill="#F2C894"/><circle cx="72" cy="22" r="5" fill="#F2C894"/>
+    <circle cx="41" cy="38" r="3.5" fill="#1B1F4B"/><circle cx="59" cy="38" r="3.5" fill="#1B1F4B"/>
+    <ellipse cx="50" cy="47" rx="4.5" ry="3.5" fill="#1B1F4B"/>
+    <path d="M45 54 Q50 58 55 54" fill="none" stroke="#1B1F4B" stroke-width="2.5" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="t-robot" viewBox="0 0 100 100">
+    <g stroke="#1B1F4B" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <line x1="50" y1="8" x2="50" y2="18"/>
+      <circle cx="50" cy="8" r="5" fill="#F0453A"/>
+      <rect x="18" y="56" width="10" height="24" rx="5" fill="#9FD3FF"/>
+      <rect x="72" y="56" width="10" height="24" rx="5" fill="#9FD3FF"/>
+      <rect x="34" y="84" width="10" height="11" rx="2" fill="#9FD3FF"/>
+      <rect x="56" y="84" width="10" height="11" rx="2" fill="#9FD3FF"/>
+      <rect x="26" y="18" width="48" height="32" rx="8" fill="#4AA8FF"/>
+      <rect x="28" y="52" width="44" height="34" rx="8" fill="#3CC9A0"/>
+    </g>
+    <circle cx="40" cy="33" r="6" fill="#FFD966" stroke="#1B1F4B" stroke-width="3"/>
+    <circle cx="60" cy="33" r="6" fill="#FFD966" stroke="#1B1F4B" stroke-width="3"/>
+    <rect x="40" y="42" width="20" height="4" rx="2" fill="#1B1F4B"/>
+    <circle cx="42" cy="65" r="4" fill="#F0453A"/><circle cx="58" cy="65" r="4" fill="#FFD966"/>
+    <rect x="38" y="74" width="24" height="4" rx="2" fill="#1B1F4B" opacity=".55"/>
+  </symbol>
+  <symbol id="t-car" viewBox="0 0 100 100">
+    <g stroke="#1B1F4B" stroke-width="4" stroke-linejoin="round">
+      <path d="M8 72 V60 Q8 52 16 51 L28 49 L38 33 Q40 30 44 30 H66 Q70 30 72 33 L82 49 Q92 51 92 60 V72 Z" fill="#4AA8FF"/>
+      <path d="M42 48 L47 37 H57 V48 Z" fill="#DDF0FF"/>
+      <path d="M63 48 V37 H68 L74 48 Z" fill="#DDF0FF"/>
+      <circle cx="28" cy="74" r="11" fill="#1B1F4B"/><circle cx="72" cy="74" r="11" fill="#1B1F4B"/>
+    </g>
+    <circle cx="28" cy="74" r="4.5" fill="#E9ECFF"/><circle cx="72" cy="74" r="4.5" fill="#E9ECFF"/>
+    <rect x="84" y="56" width="7" height="5" rx="2" fill="#FFD966"/>
+    <line x1="50" y1="54" x2="50" y2="66" stroke="#1B1F4B" stroke-width="2.5"/>
+  </symbol>
+  <symbol id="t-train" viewBox="0 0 100 100">
+    <circle cx="27" cy="9" r="5" fill="#fff" opacity=".85"/><circle cx="36" cy="5" r="3.5" fill="#fff" opacity=".7"/>
+    <g stroke="#1B1F4B" stroke-width="4" stroke-linejoin="round">
+      <rect x="20" y="24" width="12" height="20" rx="2" fill="#1B1F4B"/>
+      <rect x="15" y="17" width="22" height="9" rx="3" fill="#F0453A"/>
+      <rect x="10" y="42" width="50" height="30" rx="6" fill="#3CC9A0"/>
+      <rect x="56" y="28" width="34" height="44" rx="4" fill="#F0453A"/>
+      <rect x="52" y="21" width="42" height="10" rx="4" fill="#1B1F4B"/>
+      <rect x="63" y="36" width="20" height="15" rx="3" fill="#FFD966"/>
+      <circle cx="24" cy="78" r="9" fill="#FFD966"/><circle cx="46" cy="78" r="9" fill="#FFD966"/>
+      <circle cx="74" cy="76" r="12" fill="#FFD966"/>
+    </g>
+    <circle cx="24" cy="78" r="3" fill="#1B1F4B"/><circle cx="46" cy="78" r="3" fill="#1B1F4B"/><circle cx="74" cy="76" r="4" fill="#1B1F4B"/>
+  </symbol>
+  <symbol id="t-drum" viewBox="0 0 100 100">
+    <g stroke="#1B1F4B" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M16 42 V78 Q50 94 84 78 V42" fill="#F0453A"/>
+    </g>
+    <path d="M18 50 L30 76 L43 52 L57 79 L70 52 L82 72" fill="none" stroke="#FFD966" stroke-width="5" stroke-linejoin="round"/>
+    <g stroke="#1B1F4B" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="50" cy="42" rx="34" ry="11" fill="#FFF8E1"/>
+      <line x1="28" y1="10" x2="46" y2="36"/><line x1="76" y1="8" x2="58" y2="34"/>
+    </g>
+    <circle cx="28" cy="10" r="5" fill="#FFD966" stroke="#1B1F4B" stroke-width="3"/>
+    <circle cx="76" cy="8" r="5" fill="#FFD966" stroke="#1B1F4B" stroke-width="3"/>
+  </symbol>
+  <symbol id="t-kite" viewBox="0 0 100 100">
+    <path d="M52 68 Q40 78 52 86 Q62 92 48 98" fill="none" stroke="#1B1F4B" stroke-width="3" stroke-linecap="round"/>
+    <g stroke="#1B1F4B" stroke-width="4" stroke-linejoin="round">
+      <path d="M52 6 L82 36 L52 68 L22 36 Z" fill="#FFD966"/>
+      <path d="M52 6 L52 68 L22 36 Z" fill="#F0453A"/>
+      <path d="M22 36 H82" fill="none" stroke-width="3"/>
+    </g>
+    <path d="M47 80 l-8 -5 v10z M47 80 l8 5 v-10z" fill="#4AA8FF" stroke="#1B1F4B" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M55 91 l-8 -5 v10z M55 91 l8 5 v-10z" fill="#3CC9A0" stroke="#1B1F4B" stroke-width="2" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="t-doll" viewBox="0 0 100 100">
+    <g stroke="#1B1F4B" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <circle cx="30" cy="24" r="9" fill="#8B4A2B"/><circle cx="70" cy="24" r="9" fill="#8B4A2B"/>
+      <line x1="41" y1="72" x2="41" y2="94"/><line x1="59" y1="72" x2="59" y2="94"/>
+      <line x1="37" y1="56" x2="24" y2="69"/><line x1="63" y1="56" x2="76" y2="69"/>
+      <path d="M50 46 L27 84 H73 Z" fill="#FF8FB1"/>
+      <circle cx="50" cy="30" r="17" fill="#F7D2B6"/>
+      <path d="M33 28 Q34 12 50 12 Q66 12 67 28 Q58 20 50 22 Q42 20 33 28Z" fill="#8B4A2B"/>
+    </g>
+    <circle cx="44" cy="32" r="2.5" fill="#1B1F4B"/><circle cx="56" cy="32" r="2.5" fill="#1B1F4B"/>
+    <circle cx="40" cy="38" r="3" fill="#FF8FB1" opacity=".75"/><circle cx="60" cy="38" r="3" fill="#FF8FB1" opacity=".75"/>
+    <path d="M45 39 Q50 43 55 39" fill="none" stroke="#1B1F4B" stroke-width="2.5" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="t-torch" viewBox="0 0 100 100">
+    <path d="M58 26 L97 8 V72 L58 54 Z" fill="#FFD966" opacity=".6"/>
+    <g stroke="#1B1F4B" stroke-width="4" stroke-linejoin="round">
+      <rect x="8" y="32" width="38" height="16" rx="5" fill="#4AA8FF"/>
+      <path d="M44 30 L58 24 V56 L44 50 Z" fill="#F0453A"/>
+    </g>
+    <circle cx="22" cy="40" r="3" fill="#1B1F4B"/>
+  </symbol>
+  <symbol id="star" viewBox="-12 -12 24 24">
+    <path d="M0-10 L2.9-4 9.5-3.1 4.7 1.5 5.9 8.1 0 5 -5.9 8.1 -4.7 1.5 -9.5-3.1 -2.9-4Z" fill="#FFD966" stroke="#1B1F4B" stroke-width="1.6" stroke-linejoin="round"/>
+  </symbol>
+</svg>
+
+<!-- ============ COVER ============ -->
+<div class="wrap" id="cover">
+  <h1 class="title" aria-label="Night at the Toy Shop">
+    <span class="t-small" aria-hidden="true">Night at the</span>
+    <span class="blocks" aria-hidden="true">
+      <span class="blk b-r">T</span><span class="blk b-y">O</span><span class="blk b-s">Y</span><span class="blk-gap"></span><span class="blk b-m">S</span><span class="blk b-r">H</span><span class="blk b-s">O</span><span class="blk b-y">P</span>
+    </span>
+  </h1>
+  <p class="lede">The shop is closed. The lights are off. The toys are hiding! You are the night guard. Find them all before morning.</p>
+  <div class="scene" id="coverScene">
+    <svg viewBox="0 0 800 360" role="img" aria-label="Toy shop shelves in the dark">
+      <rect width="800" height="360" fill="#3B4196"/><rect width="800" height="360" fill="url(#wp)"/>
+      <g id="coverToys"></g>
+      <g transform="translate(560,18)">
+        <path d="M30 0 L60 22 L90 0" fill="none" stroke="#E8D9B0" stroke-width="3"/>
+        <rect x="0" y="22" width="120" height="50" rx="10" fill="#F3F4FF" stroke="#1B1F4B" stroke-width="4"/>
+        <text x="60" y="56" text-anchor="middle" font-family="Lilita One, sans-serif" font-size="26" fill="#F0453A">CLOSED</text>
+      </g>
+      <g stroke="#1B1F4B" stroke-width="4">
+        <rect x="402" y="301" width="42" height="42" rx="6" fill="#4AA8FF"/>
+        <rect x="446" y="301" width="42" height="42" rx="6" fill="#3CC9A0"/>
+        <rect x="424" y="257" width="42" height="42" rx="6" fill="#F0453A"/>
+      </g>
+      <g font-family="Lilita One, sans-serif" font-size="28" fill="#fff" text-anchor="middle">
+        <text x="423" y="332">A</text><text x="467" y="332">B</text><text x="445" y="288">C</text>
+      </g>
+      <g stroke="#1B1F4B" stroke-width="4" fill="#A86B45">
+        <rect x="16" y="115" width="768" height="14" rx="4"/>
+        <rect x="16" y="235" width="768" height="14" rx="4"/>
+        <rect x="16" y="343" width="768" height="14" rx="4"/>
+      </g>
+    </svg>
+    <div class="dark"></div><div class="glow"></div>
+  </div>
+  <div class="cover-start"><button class="btn big" id="start">Start the night shift</button></div>
+</div>
+
+<!-- ============ SKY BAR ============ -->
+<header class="skybar" id="skybar" hidden>
+  <div class="clock"><b id="clock">21:00</b><span id="left">6 more missions</span></div>
+  <svg class="arc" viewBox="0 0 600 84" preserveAspectRatio="xMidYMid meet">
+    <path d="M20 76 Q300 -36 580 76" fill="none" stroke="currentColor" stroke-opacity=".4" stroke-width="2" stroke-dasharray="3 9" stroke-linecap="round"/>
+    <g id="stops"></g>
+    <g id="moon"><circle r="24" fill="#FFF3C4" opacity=".18"/><circle r="14" fill="#FFF3C4" mask="url(#cres)"/></g>
+    <g id="sun" style="display:none"><circle r="30" fill="#FFD966" opacity=".35"/><circle r="17" fill="#FFD966" stroke="#1B1F4B" stroke-width="3"/></g>
+  </svg>
+  <div class="bar-right">
+    <div class="starbox" id="starBox" aria-live="polite"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#star" width="24" height="24"/></svg><span id="starCount">0</span></div>
+    <button class="mute" id="mute" aria-pressed="false">Sound on</button>
+  </div>
+</header>
+
+<main class="wrap" id="main" hidden>
+
+  <!-- 1 -->
+  <section class="mission">
+    <div class="m-head"><span class="m-num">Mission 1</span><h2 class="m-title">Check in</h2></div>
+    <p class="m-task">Hello, night guard! Answer the questions. Need help? Tap Help.</p>
+    <div class="panel talk">
+      <div id="talkIc"></div>
+      <div>
+        <p class="talk-q" id="talkQ"></p>
+        <p class="talk-help" id="talkHelp"></p>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn ghost" id="talkHelpBtn">Help</button>
+      <button class="btn" id="talkNext">Next card</button>
+      <p class="count" id="talkCount"></p>
+    </div>
+    <nav class="m-nav"><span></span><button class="btn" data-next>Next mission</button></nav>
+  </section>
+
+  <!-- 2 -->
+  <section class="mission" hidden>
+    <div class="m-head"><span class="m-num">Mission 2</span><h2 class="m-title">Meet the toys</h2></div>
+    <p class="m-task">Look at the toy and say the word. Then tap the card to check.</p>
+    <div class="fc-grid" id="fcGrid"></div>
+    <div class="row"><button class="btn ghost small" id="fcReset">Turn all back</button><p class="count" id="fcCount"></p></div>
+    <nav class="m-nav"><button class="btn ghost" data-prev>Back</button><button class="btn" data-next>Next mission</button></nav>
+  </section>
+
+  <!-- 3 -->
+  <section class="mission" hidden>
+    <div class="m-head"><span class="m-num">Mission 3</span><h2 class="m-title">Toy match</h2></div>
+    <p class="m-task">Tap a toy, then tap its word. A thread joins them.</p>
+    <div class="match" id="match">
+      <div class="mcol" id="mLeft"></div>
+      <div class="mcol" id="mRight"></div>
+      <svg id="mThreads" aria-hidden="true"></svg>
+    </div>
+    <p class="msg" id="mMsg" aria-live="polite"></p>
+    <nav class="m-nav"><button class="btn ghost" data-prev>Back</button><button class="btn" data-next>Next mission</button></nav>
+  </section>
+
+  <!-- 4 -->
+  <section class="mission" hidden>
+    <div class="m-head"><span class="m-num">Mission 4</span><h2 class="m-title">The glass box</h2></div>
+    <p class="m-task">Tap <b>in</b>, <b>on</b> or <b>under</b> and watch the toy move.</p>
+    <div class="panel box-row">
+      <div class="case-wrap" id="demoCase"></div>
+      <div>
+        <p class="say" id="demoSay"></p>
+        <div class="preps" id="demoPreps">
+          <button class="prep" data-pos="in">in</button>
+          <button class="prep" data-pos="on">on</button>
+          <button class="prep" data-pos="under">under</button>
+        </div>
+        <div class="row"><button class="btn ghost small" id="demoToy">Another toy</button></div>
+      </div>
+    </div>
+    <h3 class="sub">Your turn</h3>
+    <p class="m-task">Where is the toy? Tap the answer and say it out loud.</p>
+    <div class="panel box-row">
+      <div class="case-wrap" id="bqCase"></div>
+      <div>
+        <p class="q" id="bqQ"></p>
+        <div class="opts" id="bqOpts"></div>
+        <p class="msg" id="bqMsg" aria-live="polite"></p>
+        <div class="row"><button class="btn" id="bqNext" hidden>Next</button><p class="count" id="bqCount"></p></div>
+      </div>
+    </div>
+    <nav class="m-nav"><button class="btn ghost" data-prev>Back</button><button class="btn" data-next>Next mission</button></nav>
+  </section>
+
+  <!-- 5 -->
+  <section class="mission" hidden>
+    <div class="m-head"><span class="m-num">Mission 5</span><h2 class="m-title">Torch hunt</h2></div>
+    <p class="m-task">It’s dark! Move your torch to find the toy and tap it. Then choose the right sentence.</p>
+    <div class="scene" id="huntScene"></div>
+    <div class="hunt-bar">
+      <div>
+        <p class="q" id="huntQ"></p>
+        <div class="opts" id="huntOpts"></div>
+        <p class="msg" id="huntMsg" aria-live="polite"></p>
+        <div class="row"><button class="btn" id="huntNext" hidden>Next toy</button></div>
+        <div class="found" id="huntFound"></div>
+      </div>
+      <button class="btn ghost small" id="lights">Turn on the lights</button>
+    </div>
+    <nav class="m-nav"><button class="btn ghost" data-prev>Back</button><button class="btn" data-next>Next mission</button></nav>
+  </section>
+
+  <!-- 6 -->
+  <section class="mission" hidden>
+    <div class="m-head"><span class="m-num">Mission 6</span><h2 class="m-title">Tidy up</h2></div>
+    <p class="m-task">The shop opens soon! Read the note. Tap the right toy, then tap the right place.</p>
+    <p class="note" id="tidyNote"></p>
+    <p class="msg" id="tidyMsg" aria-live="polite"></p>
+    <div class="scene lit" id="tidyScene"></div>
+    <div class="tray" id="tray"></div>
+    <nav class="m-nav"><button class="btn ghost" data-prev>Back</button><button class="btn" data-next>Next mission</button></nav>
+  </section>
+
+  <!-- 7 -->
+  <section class="mission" hidden>
+    <div class="m-head"><span class="m-num">Mission 7</span><h2 class="m-title">Good morning!</h2></div>
+    <p class="m-task" id="fqTask">The sun is up. Answer seven questions and get your certificate.</p>
+    <div class="panel fq" id="fqBox">
+      <div class="fq-pic" id="fqPic"></div>
+      <div>
+        <p class="q" id="fqQ"></p>
+        <div class="opts" id="fqOpts"></div>
+        <p class="msg" id="fqMsg" aria-live="polite"></p>
+        <div class="row"><button class="btn" id="fqNext" hidden>Next</button><p class="count" id="fqCount"></p></div>
+      </div>
+    </div>
+    <div id="certArea" hidden>
+      <div class="cert">
+        <svg class="cert-badge" viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="60" r="54" fill="#1B1F4B"/>
+          <circle cx="60" cy="60" r="46" fill="none" stroke="#FFD966" stroke-width="3" stroke-dasharray="4 6"/>
+          <svg x="14" y="14" width="92" height="92" viewBox="0 0 100 100"><use href="#t-torch"/></svg>
+        </svg>
+        <p class="cert-kind">Night Guard Certificate</p>
+        <h3 class="cert-name" id="certName">Andrey</h3>
+        <p>found every toy in the shop before morning<br>and knows <b>in</b>, <b>on</b> and <b>under</b>.</p>
+        <div class="cert-foot">
+          <div><b id="certStars"></b> stars<br><span id="certDate"></span></div>
+          <div class="cert-sign"><b>Stas Vinnikov</b>English tutor</div>
+        </div>
+      </div>
+      <label class="name-field">Name <input id="nameIn" value="Andrey" maxlength="24"></label>
+    </div>
+    <nav class="m-nav"><button class="btn ghost" data-prev>Back</button><span></span></nav>
+  </section>
+
+</main>
+<footer>Made by Stas Vinnikov, English tutor</footer>
+<canvas id="confetti" hidden></canvas>
+
+<script>
+const $=s=>document.querySelector(s);
+const NS='http://www.w3.org/2000/svg';
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+
+const TOYS=[
+  {id:'ball',word:'ball',ru:'мяч'},
+  {id:'doll',word:'doll',ru:'кукла'},
+  {id:'teddy',word:'teddy bear',ru:'плюшевый мишка'},
+  {id:'robot',word:'robot',ru:'робот'},
+  {id:'car',word:'car',ru:'машинка'},
+  {id:'train',word:'train',ru:'поезд'},
+  {id:'drum',word:'drum',ru:'барабан'},
+  {id:'kite',word:'kite',ru:'воздушный змей'}
+];
+const W=id=>TOYS.find(t=>t.id===id).word;
+const icon=(id,cls='')=>`<svg class="ic ${cls}" viewBox="0 0 100 100" aria-hidden="true"><use href="#t-${id}"/></svg>`;
+const markPrep=s=>s.replace(/\b(in|on|under)\b/,m=>`<mark class="p-${m}">${m}</mark>`);
+
+/* ---------- sound ---------- */
+let AC=null,muted=false;
+function tone(f,d=.12,type='sine',v=.14,delay=0){
+  if(muted)return;
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended')AC.resume();
+    const t=AC.currentTime+delay,o=AC.createOscillator(),g=AC.createGain();
+    o.type=type;o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.03);
+  }catch(e){}
+}
+const sfx={
+  tap(){tone(560,.06,'sine',.08)},
+  flip(){tone(420,.07,'triangle',.08);tone(640,.08,'triangle',.07,.05)},
+  ok(){tone(660,.12,'triangle');tone(990,.2,'triangle',.14,.1)},
+  bad(){tone(200,.16,'square',.05);tone(150,.2,'square',.045,.12)},
+  click(){tone(1400,.03,'square',.03)},
+  win(){[523,659,784,1047,1319].forEach((f,i)=>tone(f,.26,'triangle',.13,i*.11))}
+};
+$('#mute').onclick=e=>{muted=!muted;e.target.textContent=muted?'Sound off':'Sound on';e.target.setAttribute('aria-pressed',muted)};
+
+/* ---------- stars ---------- */
+let stars=0;
+function addStar(){stars++;$('#starCount').textContent=stars;const b=$('#starBox');b.classList.remove('pulse');void b.offsetWidth;b.classList.add('pulse')}
+
+/* ---------- torch ---------- */
+function torch(scene,auto){
+  let user=false;
+  const setR=()=>scene.style.setProperty('--r',Math.max(70,scene.clientWidth*.15)+'px');
+  const set=(x,y)=>{scene.style.setProperty('--x',x+'px');scene.style.setProperty('--y',y+'px')};
+  const move=e=>{const r=scene.getBoundingClientRect();set(e.clientX-r.left,e.clientY-r.top);user=true};
+  scene.addEventListener('pointermove',move);scene.addEventListener('pointerdown',move);
+  addEventListener('resize',setR);setR();
+  if(auto&&!reduced){
+    const t0=performance.now();
+    const tick=now=>{if(user||scene.offsetParent===null)return;const t=(now-t0)/1000;set(scene.clientWidth*(.5+.38*Math.sin(t*.6)),scene.clientHeight*(.5+.22*Math.sin(t*1.25)));requestAnimationFrame(tick)};
+    requestAnimationFrame(tick);
+  }
+  return setR;
+}
+
+/* ---------- cover ---------- */
+(function(){
+  const g=$('#coverToys');const S=86;
+  const place=[['teddy',90,115],['ball',235,115],['kite',380,115],['robot',110,235],['drum',300,235],['car',490,235],['doll',670,235],['train',190,343]];
+  g.innerHTML=place.map(([id,cx,by])=>`<use href="#t-${id}" x="${cx-S/2}" y="${by-S}" width="${S}" height="${S}"/>`).join('');
+  torch($('#coverScene'),true);
+})();
+
+/* ---------- sky bar & navigation ---------- */
+const TIMES=['21:00','22:00','23:00','00:00','02:00','04:00','06:00'];
+const SKY=[['#14173F','#2A2F72'],['#171B48','#323884'],['#1B1F52','#3B4294'],['#20255E','#464DA4'],['#2B3175','#6A62AE'],['#43479A','#C487B4'],['#86BDF4','#FFD3A8']];
+const qpt=t=>{const a=(1-t)*(1-t),b=2*(1-t)*t,c=t*t;return[a*20+b*300+c*580,a*76+b*(-36)+c*76]};
+const missions=[...document.querySelectorAll('.mission')];
+let cur=0;const shown=new Set();
+$('#stops').innerHTML=missions.map((m,i)=>{const[x,y]=qpt(i/6);return `<g class="stop" data-i="${i}" tabindex="0" role="button" aria-label="Go to mission ${i+1}" transform="translate(${x},${y})"><circle r="16" fill="transparent"/><path d="M0-9 L2.6-3.6 8.6-2.8 4.2 1.4 5.3 7.3 0 4.5 -5.3 7.3 -4.2 1.4 -8.6-2.8 -2.6-3.6Z" stroke-linejoin="round"/></g>`}).join('');
+$('#stops').addEventListener('click',e=>{const s=e.target.closest('.stop');if(s)go(+s.dataset.i)});
+$('#stops').addEventListener('keydown',e=>{const s=e.target.closest('.stop');if(s&&(e.key==='Enter'||e.key===' ')){e.preventDefault();go(+s.dataset.i)}});
+function updateSky(){
+  const bar=$('#skybar');const[a,b]=SKY[cur];
+  bar.style.background=`linear-gradient(180deg,${a},${b})`;
+  bar.classList.toggle('dawn',cur===6);
+  $('#clock').textContent=TIMES[cur];
+  const n=6-cur;$('#left').textContent=n===0?'Last mission!':`${n} more mission${n>1?'s':''}`;
+  const[x,y]=qpt(cur/6);
+  $('#moon').style.transform=`translate(${x}px,${y}px)`;$('#sun').style.transform=`translate(${x}px,${y}px)`;
+  $('#moon').style.display=cur===6?'none':'';$('#sun').style.display=cur===6?'':'none';
+  document.querySelectorAll('.stop').forEach((s,i)=>{s.classList.toggle('past',i<cur);s.classList.toggle('now',i===cur)});
+}
+const onShow={};
+function go(i){
+  if(i<0||i>=missions.length)return;
+  cur=i;missions.forEach((m,k)=>m.hidden=k!==i);updateSky();sfx.click();
+  scrollTo({top:0,behavior:reduced?'auto':'smooth'});
+  if(!shown.has(i)){shown.add(i);onShow[i]&&onShow[i]()}
+  else if(onShow['re'+i])onShow['re'+i]();
+}
+document.addEventListener('click',e=>{if(e.target.closest('[data-next]'))go(cur+1);if(e.target.closest('[data-prev]'))go(cur-1)});
+$('#start').onclick=()=>{sfx.win();$('#cover').hidden=true;$('#skybar').hidden=false;$('#main').hidden=false;go(0)};
+
+/* ---------- 1 talk ---------- */
+const TALK=[
+  {q:'Hello! How are you today?',help:'I’m fine. / I’m OK. / I’m tired.',toy:'kite'},
+  {q:'What’s your favourite toy?',help:'My favourite toy is …',toy:'robot'},
+  {q:'What colour is it?',help:'It’s red. / It’s blue. / It’s green.',toy:'ball'},
+  {q:'Have you got a teddy bear?',help:'Yes, I have. / No, I haven’t.',toy:'teddy'},
+  {q:'Have you got a car or a train?',help:'I’ve got a … / I haven’t got a …',toy:'train'},
+  {q:'Are you ready to be a night guard?',help:'Yes, I am!',toy:'torch'}
+];
+let ti=0;
+function renderTalk(){
+  const c=TALK[ti];$('#talkIc').innerHTML=icon(c.toy);$('#talkQ').textContent=c.q;
+  $('#talkHelp').textContent=c.help;$('#talkHelp').classList.remove('show');
+  $('#talkCount').textContent=`Card ${ti+1} of ${TALK.length}`;
+  $('#talkNext').disabled=ti===TALK.length-1;$('#talkNext').textContent=ti===TALK.length-1?'All done':'Next card';
+}
+$('#talkHelpBtn').onclick=()=>{$('#talkHelp').classList.add('show');sfx.tap()};
+$('#talkNext').onclick=()=>{if(ti<TALK.length-1){ti++;renderTalk();sfx.flip()}};
+onShow[0]=renderTalk;
+
+/* ---------- 2 flashcards ---------- */
+onShow[1]=()=>{
+  const grid=$('#fcGrid');const open=new Set();
+  const upd=()=>$('#fcCount').textContent=`Checked ${open.size} of ${TOYS.length}`;
+  grid.innerHTML=TOYS.map(t=>`<button class="fc" data-id="${t.id}" aria-label="Toy card"><span class="fc-in"><span class="fc-face fc-front">${icon(t.id)}</span><span class="fc-face fc-back">${icon(t.id)}<b>${t.word}</b><small>${t.ru}</small></span></span></button>`).join('');
+  grid.onclick=e=>{const c=e.target.closest('.fc');if(!c)return;c.classList.toggle('on');open.add(c.dataset.id);sfx.flip();upd()};
+  $('#fcReset').onclick=()=>{grid.querySelectorAll('.fc').forEach(c=>c.classList.remove('on'));sfx.flip()};
+  upd();
+};
+
+/* ---------- 3 match (wiggly thread) ---------- */
+onShow[2]=()=>{
+  const wrap=$('#match'),L=$('#mLeft'),R=$('#mRight'),svg=$('#mThreads');
+  const ids=TOYS.map(t=>t.id);
+  L.innerHTML=shuffle(ids).map(id=>`<button class="m-item" data-id="${id}" aria-label="toy picture">${icon(id)}</button>`).join('');
+  R.innerHTML=shuffle(ids).map(id=>`<button class="m-item" data-id="${id}">${W(id)}</button>`).join('');
+  const COLORS=['#F0453A','#3CC9A0','#4AA8FF','#F2A900','#FF7BA8','#8C7CF0','#1FB3C9','#E8743B'];
+  let sel=null,mouse=null,raf=null;const locked=[];
+  const anchor=el=>{const w=wrap.getBoundingClientRect(),r=el.getBoundingClientRect();return{x:(el.parentElement===L?r.right:r.left)-w.left,y:r.top+r.height/2-w.top}};
+  function draw(t=0){
+    let h='';
+    locked.forEach(p=>{const a=anchor(p.a),b=anchor(p.b),mx=(a.x+b.x)/2,my=(a.y+b.y)/2+22;
+      h+=`<path d="M${a.x} ${a.y} Q${mx} ${my} ${b.x} ${b.y}" stroke="#1B1F4B" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M${a.x} ${a.y} Q${mx} ${my} ${b.x} ${b.y}" stroke="${p.c}" stroke-width="4.5" fill="none" stroke-linecap="round"/><circle cx="${a.x}" cy="${a.y}" r="7" fill="${p.c}" stroke="#1B1F4B" stroke-width="2"/><circle cx="${b.x}" cy="${b.y}" r="7" fill="${p.c}" stroke="#1B1F4B" stroke-width="2"/>`});
+    if(sel){
+      const a=anchor(sel),b=mouse||{x:a.x+(sel.parentElement===L?40:-40),y:a.y+10};
+      const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1,nx=-dy/len,ny=dx/len,amp=Math.min(26,len/5);
+      const w1=Math.sin(t/170)*amp,w2=Math.sin(t/170+2.3)*amp;
+      const d=`M${a.x} ${a.y} C${a.x+dx/3+nx*w1} ${a.y+dy/3+ny*w1} ${a.x+2*dx/3+nx*w2} ${a.y+2*dy/3+ny*w2} ${b.x} ${b.y}`;
+      const off=-t/28;
+      h+=`<path d="${d}" stroke="#1B1F4B" stroke-width="7" fill="none" stroke-linecap="round" stroke-dasharray="11 9" stroke-dashoffset="${off}"/><path d="${d}" stroke="#FFD966" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="11 9" stroke-dashoffset="${off}"/><circle cx="${b.x}" cy="${b.y}" r="8" fill="#FFD966" stroke="#1B1F4B" stroke-width="2.5"/>`;
+    }
+    svg.innerHTML=h;
+  }
+  const loop=t=>{draw(t);raf=sel?requestAnimationFrame(loop):null};
+  const start=()=>{if(!raf)raf=requestAnimationFrame(loop)};
+  const pos=e=>{const w=wrap.getBoundingClientRect();mouse={x:e.clientX-w.left,y:e.clientY-w.top}};
+  wrap.addEventListener('pointermove',pos);wrap.addEventListener('pointerdown',pos);
+  wrap.addEventListener('pointerleave',()=>{mouse=null});
+  wrap.addEventListener('click',e=>{
+    const it=e.target.closest('.m-item');if(!it||it.classList.contains('done'))return;
+    if(!sel){sel=it;it.classList.add('sel');sfx.tap();start();return}
+    if(sel===it){it.classList.remove('sel');sel=null;draw();return}
+    if(sel.parentElement===it.parentElement){sel.classList.remove('sel');sel=it;it.classList.add('sel');sfx.tap();return}
+    if(sel.dataset.id===it.dataset.id){
+      const a=sel.parentElement===L?sel:it,b=a===sel?it:sel,c=COLORS[locked.length%COLORS.length];
+      locked.push({a,b,c});[a,b].forEach(x=>{x.classList.add('done');x.style.borderColor=c});
+      sel.classList.remove('sel');sel=null;sfx.ok();addStar();draw();
+      $('#mMsg').className='msg ok';
+      $('#mMsg').textContent=locked.length===TOYS.length?'All eight toys matched! Super!':`Yes! ${W(it.dataset.id)}.`;
+      if(locked.length===TOYS.length)sfx.win();
+    }else{
+      it.classList.add('shake');setTimeout(()=>it.classList.remove('shake'),400);sfx.bad();
+      $('#mMsg').className='msg bad';$('#mMsg').textContent='Not this one. Try again!';
+    }
+  });
+  addEventListener('resize',()=>draw());
+  onShow['re2']=()=>draw();
+  draw();
+};
+
+/* ---------- 4 glass box ---------- */
+const CASE_POS={on:[165,8],in:[165,104],under:[165,208]};
+function caseSVG(toy,pos){
+  const[x,y]=CASE_POS[pos];
+  return `<svg viewBox="0 0 400 290" class="case" role="img" aria-label="The ${W(toy)} is ${pos} the box">
+  <ellipse cx="200" cy="281" rx="150" ry="7" fill="#1B1F4B" opacity=".15"/>
+  <g stroke="#1B1F4B" stroke-width="4" stroke-linejoin="round">
+    <rect x="122" y="186" width="14" height="94" rx="4" fill="#E8B04B"/>
+    <rect x="264" y="186" width="14" height="94" rx="4" fill="#E8B04B"/>
+    <rect x="112" y="88" width="176" height="98" fill="#9FD3FF" fill-opacity=".28"/>
+  </g>
+  <g class="mover" style="transform:translate(${x}px,${y}px)"><use href="#t-${toy}" width="70" height="70"/></g>
+  <g stroke="#1B1F4B" stroke-width="4" stroke-linejoin="round">
+    <rect x="112" y="88" width="176" height="98" fill="#FFFFFF" fill-opacity=".2"/>
+    <rect x="104" y="78" width="192" height="14" rx="5" fill="#E8B04B"/>
+    <rect x="104" y="182" width="192" height="12" rx="4" fill="#E8B04B"/>
+  </g>
+  <path d="M128 104 L152 104 M128 118 L140 118" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity=".75"/>
+  </svg>`;
+}
+onShow[3]=()=>{
+  let dToy=2,dPos='in';
+  $('#demoCase').innerHTML=caseSVG(TOYS[dToy].id,dPos);
+  const say=()=>{$('#demoSay').innerHTML=`The ${TOYS[dToy].word} is ${markPrep(dPos)} the box.`;document.querySelectorAll('#demoPreps .prep').forEach(b=>b.classList.toggle('cur',b.dataset.pos===dPos))};
+  say();
+  $('#demoPreps').onclick=e=>{const b=e.target.closest('.prep');if(!b)return;dPos=b.dataset.pos;const[x,y]=CASE_POS[dPos];$('#demoCase .mover').style.transform=`translate(${x}px,${y}px)`;sfx.flip();say()};
+  $('#demoToy').onclick=()=>{dToy=(dToy+1)%TOYS.length;$('#demoCase use').setAttribute('href','#t-'+TOYS[dToy].id);sfx.tap();say()};
+  // quiz
+  const preps=shuffle(['in','on','under','in','on','under']);const toys=shuffle(TOYS.map(t=>t.id)).slice(0,6);
+  let k=0,score=0;
+  const ANS={in:'It’s in the box.',on:'It’s on the box.',under:'It’s under the box.'};
+  function round(){
+    const toy=toys[k],pos=preps[k];
+    $('#bqCase').innerHTML=caseSVG(toy,pos);$('#bqQ').textContent=`Where is the ${W(toy)}?`;
+    $('#bqMsg').textContent='';$('#bqNext').hidden=true;$('#bqCount').textContent=`${k+1} of 6`;
+    $('#bqOpts').innerHTML=['in','on','under'].map(p=>`<button class="opt" data-p="${p}">${markPrep(ANS[p])}</button>`).join('');
+    $('#bqOpts').onclick=e=>{const b=e.target.closest('.opt');if(!b||b.disabled)return;
+      if(b.dataset.p===pos){b.classList.add('right');$('#bqOpts').querySelectorAll('.opt').forEach(o=>o.disabled=true);sfx.ok();addStar();score++;
+        $('#bqMsg').className='msg ok';$('#bqMsg').textContent=`Yes! The ${W(toy)} is ${pos} the box.`;$('#bqNext').hidden=false;$('#bqNext').textContent=k<5?'Next':'Play again';}
+      else{b.classList.add('wrong');b.disabled=true;sfx.bad();$('#bqMsg').className='msg bad';$('#bqMsg').textContent='Look at the box again!'}};
+  }
+  $('#bqNext').onclick=()=>{if(k<5){k++;round()}else{k=0;round()}};
+  round();
+};
+
+/* ---------- room scene (5 & 6) ---------- */
+const SLOTS={
+  'on the bed':[[165,231,74],[248,231,74]],
+  'under the bed':[[118,378,64],[215,378,64]],
+  'on the table':[[450,249,72],[540,249,72]],
+  'under the table':[[495,378,62]],
+  'in the box':[[668,318,76],[734,318,76]]
+};
+const PLACES=Object.keys(SLOTS);
+function roomSVG(label){
+  return `<svg class="room" viewBox="0 0 800 450" role="img" aria-label="${label}">
+  <rect width="800" height="380" fill="#4B51A8"/><rect width="800" height="380" fill="url(#wp)"/>
+  <rect y="380" width="800" height="70" fill="#8A5A3C"/><path d="M0 405 H800 M0 429 H800" stroke="#74482E" stroke-width="3"/>
+  <rect x="335" y="40" width="130" height="105" rx="10" fill="#1E2257"/>
+  <circle cx="425" cy="72" r="16" fill="#FFF3C4"/><circle cx="433" cy="66" r="14" fill="#1E2257"/>
+  <circle cx="358" cy="66" r="2.5" fill="#FFF3C4"/><circle cx="380" cy="118" r="2" fill="#FFF3C4"/><circle cx="446" cy="124" r="2.5" fill="#FFF3C4"/>
+  <path d="M400 40 V145 M335 92 H465" stroke="#E8D9B0" stroke-width="6"/>
+  <rect x="335" y="40" width="130" height="105" rx="10" fill="none" stroke="#E8D9B0" stroke-width="8"/>
+  <rect x="330" y="35" width="140" height="115" rx="14" fill="none" stroke="#1B1F4B" stroke-width="3"/>
+  <ellipse cx="420" cy="414" rx="190" ry="20" fill="#F0453A" opacity=".45"/>
+  <g stroke="#1B1F4B" stroke-width="4" stroke-linejoin="round">
+    <rect x="30" y="150" width="28" height="230" rx="8" fill="#A86B45"/>
+    <rect x="52" y="262" width="242" height="24" rx="4" fill="#A86B45"/>
+    <rect x="56" y="236" width="236" height="28" rx="8" fill="#F3F4FF"/>
+    <rect x="64" y="212" width="58" height="28" rx="14" fill="#FFFFFF"/>
+    <rect x="118" y="228" width="176" height="42" rx="10" fill="#3CC9A0"/>
+  </g>
+  <path d="M155 232 V266 M195 232 V266 M235 232 V266 M272 232 V266" stroke="#26A07D" stroke-width="3"/>
+  <rect x="288" y="205" width="22" height="175" rx="6" fill="#A86B45" stroke="#1B1F4B" stroke-width="4"/>
+  <g stroke="#1B1F4B" stroke-width="4" stroke-linejoin="round">
+    <rect x="408" y="258" width="16" height="122" rx="4" fill="#E8B04B"/>
+    <rect x="566" y="258" width="16" height="122" rx="4" fill="#E8B04B"/>
+    <rect x="392" y="246" width="206" height="18" rx="6" fill="#E8B04B"/>
+    <path d="M632 280 L652 214 L790 214 L772 280 Z" fill="#C7362D"/>
+    <rect x="626" y="276" width="148" height="24" rx="4" fill="#2A2E6B"/>
+  </g>
+  <g class="layer-inbox"></g>
+  <rect x="618" y="294" width="164" height="86" rx="8" fill="#F0453A" stroke="#1B1F4B" stroke-width="4"/>
+  <text x="700" y="350" text-anchor="middle" font-family="Lilita One, sans-serif" font-size="32" fill="#FFD966" stroke="#1B1F4B" stroke-width="1.5">TOYS</text>
+  <g class="layer-toys"></g>
+  <g class="zones">
+    <rect class="zone" data-place="on the bed" x="112" y="148" width="190" height="84" rx="12"/>
+    <rect class="zone" data-place="under the bed" x="60" y="290" width="226" height="88" rx="12"/>
+    <rect class="zone" data-place="on the table" x="392" y="166" width="206" height="78" rx="12"/>
+    <rect class="zone" data-place="under the table" x="427" y="268" width="136" height="110" rx="12"/>
+    <rect class="zone" data-place="in the box" x="618" y="226" width="164" height="154" rx="12"/>
+  </g>
+  </svg>`;
+}
+function placeToy(svg,toy,place,slot,cls=''){
+  const[cx,by,s]=SLOTS[place][slot];
+  const layer=svg.querySelector(place==='in the box'?'.layer-inbox':'.layer-toys');
+  const g=document.createElementNS(NS,'g');
+  g.setAttribute('class','toy '+cls);g.setAttribute('data-toy',toy);
+  g.setAttribute('transform',`translate(${cx-s/2},${by-s})`);
+  g.innerHTML=`<g class="bob"><use href="#t-${toy}" width="${s}" height="${s}"/></g>`;
+  layer.appendChild(g);return g;
+}
+
+/* ---------- 5 torch hunt ---------- */
+const HUNT=[
+  {toy:'teddy',place:'on the bed',slot:0},
+  {toy:'robot',place:'under the bed',slot:0},
+  {toy:'kite',place:'under the bed',slot:1},
+  {toy:'doll',place:'on the table',slot:1},
+  {toy:'car',place:'under the table',slot:0},
+  {toy:'ball',place:'in the box',slot:0}
+];
+onShow[4]=()=>{
+  const scene=$('#huntScene');
+  scene.innerHTML=roomSVG('A dark room with a bed, a table and a toy box')+'<div class="dark"></div><div class="glow"></div>';
+  const svg=scene.querySelector('svg');
+  HUNT.forEach(h=>placeToy(svg,h.toy,h.place,h.slot));
+  const setR=torch(scene,false);onShow['re4']=setR;
+  const order=shuffle(HUNT);let k=0,phase='find';
+  $('#huntFound').innerHTML=HUNT.map(h=>icon(h.toy)).join('');
+  const foundIc=[...$('#huntFound').children];
+  function ask(){
+    const h=order[k];phase='find';
+    $('#huntQ').textContent=`Where is the ${W(h.toy)}?`;$('#huntOpts').innerHTML='';
+    $('#huntMsg').className='msg';$('#huntMsg').textContent='Find it with your torch and tap it.';$('#huntNext').hidden=true;
+  }
+  svg.addEventListener('click',e=>{
+    const t=e.target.closest('.toy');if(!t||phase!=='find')return;const h=order[k];
+    if(t.dataset.toy===h.toy){
+      phase='say';t.classList.remove('got');void t.getBoundingClientRect();t.classList.add('got');sfx.ok();
+      $('#huntMsg').className='msg ok';$('#huntMsg').textContent=`You found the ${W(h.toy)}! Where is it?`;
+      const opts=shuffle([h.place,...shuffle(PLACES.filter(p=>p!==h.place)).slice(0,2)]);
+      $('#huntOpts').innerHTML=opts.map(p=>`<button class="opt" data-p="${p}">${markPrep('It’s '+p+'.')}</button>`).join('');
+    }else{
+      sfx.bad();$('#huntMsg').className='msg bad';$('#huntMsg').textContent=`That’s the ${W(t.dataset.toy)}. Find the ${W(h.toy)}!`;
+    }
+  });
+  $('#huntOpts').onclick=e=>{
+    const b=e.target.closest('.opt');if(!b||b.disabled)return;const h=order[k];
+    if(b.dataset.p===h.place){
+      b.classList.add('right');$('#huntOpts').querySelectorAll('.opt').forEach(o=>o.disabled=true);sfx.ok();addStar();
+      foundIc[HUNT.indexOf(h)].classList.add('yes');
+      $('#huntMsg').className='msg ok';$('#huntMsg').textContent=`Yes! The ${W(h.toy)} is ${h.place}.`;
+      if(k<order.length-1){$('#huntNext').hidden=false}
+      else{phase='done';scene.classList.add('lit');$('#lights').hidden=true;sfx.win();$('#huntQ').textContent='You found all the toys!';$('#huntMsg').textContent='Great job, night guard. The lights are on now.'}
+    }else{b.classList.add('wrong');b.disabled=true;sfx.bad();$('#huntMsg').className='msg bad';$('#huntMsg').textContent=`Look at the ${W(h.toy)} again!`}
+  };
+  $('#huntNext').onclick=()=>{k++;ask()};
+  $('#lights').onclick=()=>{const on=scene.classList.toggle('lit');$('#lights').textContent=on?'Turn off the lights':'Turn on the lights';sfx.click()};
+  ask();
+};
+
+/* ---------- 6 tidy up ---------- */
+const TIDY=[
+  {toy:'teddy',place:'under the table'},
+  {toy:'ball',place:'on the bed'},
+  {toy:'robot',place:'in the box'},
+  {toy:'car',place:'on the table'},
+  {toy:'doll',place:'under the bed'},
+  {toy:'drum',place:'on the bed'}
+];
+onShow[5]=()=>{
+  const scene=$('#tidyScene');scene.innerHTML=roomSVG('A room with a bed, a table and a toy box');
+  const svg=scene.querySelector('svg');const used={};let k=0,sel=null;
+  $('#tray').innerHTML=shuffle(TOYS.map(t=>t.id)).map(id=>`<button data-id="${id}" aria-label="toy">${icon(id)}</button>`).join('');
+  const msg=(t,c='')=>{$('#tidyMsg').className='msg '+c;$('#tidyMsg').textContent=t};
+  const note=()=>{const s=TIDY[k];$('#tidyNote').innerHTML=`Put the ${W(s.toy)} ${markPrep(s.place)}.`;msg('Tap the toy first.')};
+  $('#tray').onclick=e=>{
+    const b=e.target.closest('button');if(!b||k>=TIDY.length)return;
+    if(b.dataset.id!==TIDY[k].toy){b.classList.add('shake');setTimeout(()=>b.classList.remove('shake'),400);sfx.bad();msg(`That’s the ${W(b.dataset.id)}. Find the ${W(TIDY[k].toy)}.`,'bad');return}
+    $('#tray').querySelectorAll('button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sel=b;svg.classList.add('armed');sfx.tap();msg('Good! Now tap the place.');
+  };
+  svg.addEventListener('click',e=>{
+    const z=e.target.closest('.zone');if(!z||!sel)return;const s=TIDY[k],p=z.dataset.place;
+    if(p!==s.place){sfx.bad();msg(`That’s ${p}. Put it ${s.place}.`,'bad');return}
+    const slot=used[p]||0;used[p]=slot+1;placeToy(svg,s.toy,p,Math.min(slot,SLOTS[p].length-1),'pop');
+    sel.hidden=true;sel=null;svg.classList.remove('armed');sfx.ok();addStar();
+    msg(`Yes! The ${W(s.toy)} is ${p}.`,'ok');k++;
+    if(k<TIDY.length)setTimeout(note,1100);
+    else{$('#tidyNote').textContent='The shop is tidy!';sfx.win();msg('Well done! Go to the last mission.','ok')}
+  });
+  note();
+};
+
+/* ---------- 7 final quiz + certificate ---------- */
+const FINAL=[
+  {pic:()=>icon('kite'),q:'What’s this?',opts:['a kite','a drum','a doll'],a:0},
+  {pic:()=>caseSVG('ball','under'),q:'Where is the ball?',opts:['It’s in the box.','It’s on the box.','It’s under the box.'],a:2},
+  {pic:()=>icon('drum'),q:'What’s this?',opts:['a train','a robot','a drum'],a:2},
+  {pic:()=>caseSVG('car','on'),q:'The car is ___ the box.',opts:['in','on','under'],a:1},
+  {pic:()=>caseSVG('teddy','in'),q:'Where is the teddy bear?',opts:['It’s in the box.','It’s under the box.','It’s on the box.'],a:0},
+  {pic:()=>'<span class="ru" lang="ru">под</span>',q:'Which word is this in English?',opts:['in','on','under'],a:2},
+  {pic:()=>icon('doll'),q:'What’s this?',opts:['a ball','a doll','a car'],a:1}
+];
+onShow[6]=()=>{
+  let k=0,score=0;
+  function show(){
+    const f=FINAL[k];$('#fqPic').innerHTML=f.pic();$('#fqQ').textContent=f.q;$('#fqMsg').textContent='';$('#fqNext').hidden=true;
+    $('#fqCount').textContent=`${k+1} of ${FINAL.length}`;
+    $('#fqOpts').innerHTML=f.opts.map((o,i)=>`<button class="opt" data-i="${i}">${f.q.includes('___')?o:markPrep(o)}</button>`).join('');
+  }
+  $('#fqOpts').onclick=e=>{
+    const b=e.target.closest('.opt');if(!b||b.disabled)return;const f=FINAL[k];const all=[...$('#fqOpts').children];
+    all.forEach(o=>o.disabled=true);all[f.a].classList.add('right');
+    if(+b.dataset.i===f.a){score++;addStar();sfx.ok();$('#fqMsg').className='msg ok';$('#fqMsg').textContent='Correct!'}
+    else{b.classList.add('wrong');sfx.bad();$('#fqMsg').className='msg bad';$('#fqMsg').textContent=`The answer is: ${f.opts[f.a]}`}
+    $('#fqNext').hidden=false;$('#fqNext').textContent=k<FINAL.length-1?'Next':'Get my certificate';
+  };
+  $('#fqNext').onclick=()=>{
+    if(k<FINAL.length-1){k++;show();return}
+    $('#fqBox').hidden=true;$('#certArea').hidden=false;
+    $('#fqTask').textContent=`You got ${score} of ${FINAL.length}. Here is your certificate!`;
+    $('#certStars').textContent=stars;
+    $('#certDate').textContent=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+    sfx.win();confetti();
+  };
+  $('#nameIn').oninput=e=>$('#certName').textContent=e.target.value.trim()||'Andrey';
+  show();
+};
+
+/* ---------- confetti ---------- */
+function confetti(){
+  if(reduced)return;
+  const c=$('#confetti'),ctx=c.getContext('2d'),d=devicePixelRatio||1;
+  c.width=innerWidth*d;c.height=innerHeight*d;c.hidden=false;
+  const cols=['#F0453A','#3CC9A0','#4AA8FF','#FFD966','#FF8FB1'];
+  const ps=Array.from({length:180},()=>({x:Math.random()*c.width,y:-Math.random()*c.height*.6,vx:(Math.random()-.5)*4*d,vy:(2+Math.random()*4)*d,s:(7+Math.random()*8)*d,r:Math.random()*6,vr:(Math.random()-.5)*.3,col:cols[Math.random()*5|0]}));
+  const t0=performance.now();
+  (function f(now){
+    ctx.clearRect(0,0,c.width,c.height);
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.035*d;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.col;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore()});
+    if(now-t0<4500)requestAnimationFrame(f);else{ctx.clearRect(0,0,c.width,c.height);c.hidden=true}
+  })(t0);
+}
+</script>
+</body>
+</html>
